@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>運動規劃小幫手：排出你的一週菜單與飲食</title>
+<meta name="description" content="回答五個問題，選擇重訓、有氧或 HIIT，馬上得到一週運動菜單與飲食建議。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2447d6; --ink:#0e1a2b; --chalk:#f4f6f8; --yellow:#ffd23f;
+  --mat:#cfd6de; --teal:#0b8a78; --coral:#d92f60; --muted:#56657a; --white:#fff;
+  --display:"Barlow Condensed","Noto Sans TC",sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);background:var(--chalk);color:var(--ink);line-height:1.75;font-size:16px}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;box-shadow:0 0 0 5px var(--ink)}
+
+/* header */
+.top{background:var(--blue);color:#fff;border-bottom:8px solid var(--yellow);padding:34px 0 28px}
+.brand{font-weight:700;font-size:15px;color:#dbe4ff;margin:0 0 10px}
+.top h1{font-weight:900;font-size:clamp(32px,6.4vw,58px);line-height:1.15;margin:0 0 12px}
+.top p.sub{margin:0;max-width:30em;color:#e6ecff;font-size:17px}
+
+/* stepper */
+.steps{background:#fff;border-bottom:2px solid var(--mat);position:sticky;top:0;z-index:5}
+.steps .wrap{display:flex}
+.steps button{flex:1;background:none;border:0;padding:12px 6px;cursor:pointer;font-weight:700;color:var(--muted);
+  border-bottom:5px solid transparent;margin-bottom:-2px;display:flex;gap:10px;align-items:center;justify-content:center}
+.steps .n{font-family:var(--display);font-weight:800;font-size:28px;line-height:1}
+.steps button[aria-current="step"]{color:var(--ink);border-bottom-color:var(--blue)}
+.steps button:disabled{opacity:.4;cursor:not-allowed}
+
+main{padding:30px 0 60px}
+h2{font-weight:900;font-size:clamp(24px,4vw,32px);line-height:1.3;margin:0 0 6px}
+h3{font-weight:700;font-size:18px;margin:0 0 10px}
+.lead{margin:0 0 26px;color:var(--muted);max-width:36em}
+.q{margin:0 0 26px}
+.hint{font-size:14px;color:var(--muted);margin:8px 0 0}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:2px solid var(--mat);background:#fff;border-radius:6px;padding:10px 16px;cursor:pointer;text-align:left;min-width:88px}
+.chip b{display:block;font-weight:700}
+.chip small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+.chip[aria-pressed="true"]{border-color:var(--blue);background:var(--blue);color:#fff}
+.chip[aria-pressed="true"] small{color:#dbe4ff}
+input[type=number]{font:inherit;border:2px solid var(--mat);border-radius:6px;padding:10px 12px;width:150px;background:#fff;color:var(--ink)}
+
+/* buttons */
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.btn{border:2px solid var(--ink);background:#fff;border-radius:6px;padding:11px 20px;font-weight:700;cursor:pointer;transition:background .15s,color .15s}
+.btn:hover{background:var(--ink);color:#fff}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:var(--ink);border-color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed;background:#fff;color:var(--ink)}
+.btn.primary:disabled{background:var(--mat);border-color:var(--mat)}
+
+/* modules */
+.t-strength{--c:var(--ink)} .t-cardio{--c:var(--teal)} .t-hiit{--c:var(--coral)}
+.t-recovery{--c:var(--blue)} .t-rest{--c:var(--mat)}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.mod{border:2px solid var(--c);background:#fff;border-radius:6px;display:flex;flex-direction:column;cursor:pointer}
+.mod.on{box-shadow:0 0 0 5px var(--yellow)}
+.mod .head{background:var(--c);color:#fff;padding:14px 16px 12px;position:relative}
+.mod .en{font-family:var(--display);font-weight:800;font-size:44px;line-height:1}
+.mod .zh{font-weight:700;font-size:17px;margin-top:4px}
+.badge{position:absolute;top:12px;right:12px;background:var(--yellow);color:var(--ink);font-weight:900;font-size:13px;padding:1px 10px;border-radius:3px}
+.mod .bd{padding:14px 16px;flex:1}
+.mod .tg{margin:0 0 12px;font-weight:500}
+.stat{display:flex;justify-content:space-between;align-items:center;font-size:14px;line-height:1.9}
+.dots i{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--mat);margin-left:4px}
+.dots i.f{background:var(--c)}
+.mod h4{font-size:14px;margin:14px 0 2px;font-weight:700}
+.mod ul{margin:0;padding-left:20px;font-size:14px}
+.mod .ft{padding:12px 16px 16px}
+.mod .ft .btn{width:100%}
+.mod.on .ft .btn{background:var(--c);border-color:var(--c);color:#fff}
+.mod .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.meta span{font-size:13px;border:1px solid var(--mat);padding:0 8px;border-radius:3px}
+
+/* result */
+.summary{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0 0 4px}
+.summary li{background:#fff;border:2px solid var(--mat);border-radius:6px;padding:2px 12px;font-size:14px;font-weight:500}
+.tabs{display:flex;gap:0;margin:26px 0 18px;border-bottom:3px solid var(--ink)}
+.tabs button{background:#fff;border:2px solid var(--mat);border-bottom:0;padding:10px 24px;font-weight:700;cursor:pointer;border-radius:6px 6px 0 0;margin-right:6px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.panel{display:none}
+.panel.show{display:block}
+.strip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0 8px}
+.cell{display:block;text-decoration:none;color:var(--ink);background:#fff;border-top:9px solid var(--c);padding:8px 2px 10px;text-align:center}
+.cell .dn{display:block;font-weight:900;font-size:20px;line-height:1.3}
+.cell .tn{display:block;font-size:12px;color:var(--muted);line-height:1.4}
+.legend{font-size:14px;color:var(--muted);margin:0 0 16px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:20px 0 6px;flex-wrap:wrap}
+.toolbar h3{margin:0}
+.linkbtn{background:none;border:0;color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline;padding:4px}
+details.day{background:#fff;border:2px solid var(--mat);border-left:9px solid var(--c);border-radius:6px;margin:10px 0}
+details.day summary{list-style:none;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;flex-wrap:wrap}
+details.day summary::-webkit-details-marker{display:none}
+details.day summary::after{content:"+";margin-left:auto;font-size:24px;font-weight:700;line-height:1}
+details.day[open] summary::after{content:"−"}
+.d{font-weight:900;font-size:18px;min-width:3.2em}
+.tag{background:var(--c);color:#fff;font-size:13px;font-weight:700;padding:0 10px;border-radius:3px}
+.t-rest .tag{color:var(--ink)}
+.m{color:var(--muted);font-size:14px}
+.body{padding:0 16px 16px}
+.blk{margin:10px 0;font-size:15px}
+.blk b{color:var(--c)}
+.t-rest .blk b{color:var(--ink)}
+.ex{list-style:none;margin:8px 0;padding:0;counter-reset:ex}
+.ex li{display:grid;grid-template-columns:34px 1fr auto;gap:0 10px;padding:10px 0;border-top:1px solid var(--mat)}
+.ex li::before{counter-increment:ex;content:counter(ex);font-family:var(--display);font-weight:800;font-size:28px;line-height:1.2;color:var(--c);grid-row:1/3}
+.ex .nm{font-weight:700}
+.ex .am{font-weight:700;color:var(--blue);white-space:nowrap}
+.ex .tp{grid-column:2/4;color:var(--muted);font-size:14px;margin:0;line-height:1.55}
+.note{background:#fff;border-left:6px solid var(--yellow);padding:12px 16px;margin:20px 0;font-size:15px}
+.note h3{margin-bottom:4px;font-size:16px}
+.note ul{margin:4px 0 0;padding-left:20px}
+.disc{font-size:13px;color:var(--muted);margin-top:30px;border-top:1px solid var(--mat);padding-top:14px}
+
+/* diet */
+.plate{display:flex;height:46px;border-radius:6px;overflow:hidden;border:2px solid var(--ink)}
+.plate span{display:flex;align-items:center;justify-content:center;font-weight:900;font-family:var(--display);font-size:22px;color:#fff}
+.p-veg{background:var(--teal)} .p-pro{background:var(--coral)} .p-carb{background:var(--yellow);color:var(--ink)!important} .p-fat{background:var(--mat);color:var(--ink)!important}
+.plate-l{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;margin:8px 0 0}
+.plate-l i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.big{font-family:var(--display);font-weight:800;font-size:40px;line-height:1.1}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:18px 0}
+.box{background:#fff;border:2px solid var(--mat);border-radius:6px;padding:14px 16px}
+.box h3{margin-bottom:6px}
+.box ul{margin:0;padding-left:20px;font-size:15px}
+.meals{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.meal{background:#fff;border-top:7px solid var(--blue);padding:10px 14px 14px}
+.meal h4{margin:0 0 4px;font-size:16px}
+.meal ul{margin:0;padding-left:18px;font-size:14px}
+.meal li{margin-bottom:4px}
+
+@media (max-width:560px){
+  .steps button{font-size:14px;gap:6px}
+  .steps .n{font-size:22px}
+  .cell .tn{font-size:11px}
+  .cell .dn{font-size:17px}
+  .ex li{grid-template-columns:30px 1fr}
+  .ex .am{grid-column:2}
+  .ex .tp{grid-column:2}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
+@media print{
+  .steps,.actions,.tabs,.linkbtn,.toolbar button,.top .sub{display:none!important}
+  .panel{display:block!important}
+  .top{padding:14px 0;border-bottom-width:4px}
+  body{background:#fff}
+  details.day{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="brand">運動規劃小幫手</p>
+    <h1>不知道怎麼開始？<br>先把運動排進這一週。</h1>
+    <p class="sub">回答幾個問題、挑選訓練方式，就能拿到一週運動菜單和對應的飲食方向。</p>
+  </div>
+</header>
+
+<nav class="steps" aria-label="步驟">
+  <div class="wrap">
+    <button data-go="1"><span class="n">1</span>你的條件</button>
+    <button data-go="2"><span class="n">2</span>訓練方式</button>
+    <button data-go="3"><span class="n">3</span>我的菜單</button>
+  </div>
+</nav>
+
+<main class="wrap" id="app" aria-live="polite"></main>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- 基本資料 ---------- */
+const STORE = 'fitplan.v1';
+const GOALS  = {muscle:'增肌', fat:'減脂', health:'維持健康'};
+const EQUIPS = {none:'無器材', dumbbell:'有啞鈴', gym:'健身房'};
+const LEVELS = {beginner:'新手', mid:'有基礎'};
+const TYPE_NAME  = {strength:'重量訓練', cardio:'有氧運動', hiit:'HIIT', recovery:'主動恢復', rest:'休息'};
+const TYPE_SHORT = {strength:'重訓', cardio:'有氧', hiit:'HIIT', recovery:'恢復', rest:'休息'};
+
+const OPT = {
+  goal:[['muscle','增肌','變壯、線條更結實'],['fat','減脂','降低體脂、更有體力'],['health','維持健康','提升體能與精神']],
+  days:[[2,'2 天'],[3,'3 天'],[4,'4 天'],[5,'5 天'],[6,'6 天']],
+  minutes:[[20,'20 分鐘'],[30,'30 分鐘'],[45,'45 分鐘'],[60,'60 分鐘']],
+  equip:[['none','無器材','在家徒手'],['dumbbell','有啞鈴','在家＋啞鈴或彈力帶'],['gym','健身房','器材齊全']],
+  level:[['beginner','新手','剛開始，或很久沒運動'],['mid','有基礎','規律運動過幾個月']]
+};
+
+const MODS = {
+  strength:{en:'STRENGTH', name:'重量訓練', tag:'用阻力刺激肌肉，變壯也變耐用',
+    stats:{muscle:5,fat:3,heart:2,easy:4}, time:'30–60 分鐘／次', freq:'每週 2–4 次',
+    fit:'想增肌、雕塑線條、提升基礎代謝的人。',
+    pros:['增肌與力量效果最好','運動後身體仍持續恢復與消耗','在家或健身房都能做'],
+    cons:['動作需要學習，姿勢比重量重要','前幾週容易痠痛']},
+  cardio:{en:'CARDIO', name:'有氧運動', tag:'穩定節奏、較長時間的心肺訓練',
+    stats:{muscle:1,fat:3,heart:5,easy:5}, time:'20–60 分鐘／次', freq:'每週 2–5 次',
+    fit:'新手、想提升體力與心肺、喜歡輕鬆節奏的人。',
+    pros:['門檻最低，快走就能開始','改善心肺與精神狀態','恢復快，可以常做'],
+    cons:['單靠有氧增肌效果有限','要花較長時間才有明顯消耗']},
+  hiit:{en:'HIIT', name:'高強度間歇訓練', tag:'短時間衝刺、休息、再衝刺',
+    stats:{muscle:2,fat:5,heart:4,easy:2}, time:'20–30 分鐘／次', freq:'每週 1–2 次',
+    fit:'時間有限、已有基本體能、想提升心肺與燃脂效率的人。',
+    pros:['時間短、效率高','不需器材也能做','快速提升心肺能力'],
+    cons:['強度高，疲勞與受傷風險較高','不宜連續幾天做，新手先建立基礎再加']}
+};
+const STAT_LABEL = {muscle:'增肌',fat:'燃脂',heart:'心肺',easy:'新手友善'};
+
+/* ---------- 狀態 ---------- */
+const DEF = {goal:'fat',days:3,minutes:30,equip:'none',level:'beginner',weight:'',modules:[],touched:false,step:1,tab:'plan'};
+function sanitize(o){
+  const s = Object.assign({}, DEF, o || {});
+  if(!GOALS[s.goal]) s.goal = DEF.goal;
+  s.days = [2,3,4,5,6].includes(+s.days) ? +s.days : DEF.days;
+  s.minutes = [20,30,45,60].includes(+s.minutes) ? +s.minutes : DEF.minutes;
+  if(!EQUIPS[s.equip]) s.equip = DEF.equip;
+  if(!LEVELS[s.level]) s.level = DEF.level;
+  s.modules = Array.isArray(s.modules) ? s.modules.filter(m => MODS[m]) : [];
+  s.step = [1,2,3].includes(+s.step) ? +s.step : 1;
+  s.tab = s.tab === 'diet' ? 'diet' : 'plan';
+  s.weight = String(s.weight == null ? '' : s.weight).slice(0,6);
+  s.touched = !!s.touched;
+  return s;
+}
+function load(){
+  try{ return sanitize(JSON.parse(localStorage.getItem(STORE))); }catch(e){ return sanitize(); }
+}
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+let S = load();
+if(S.step === 3 && !S.modules.length) S.step = 2;
+
+/* ---------- 推薦 ---------- */
+function recommend(){
+  if(S.goal === 'muscle') return {mods:['strength','cardio'], why:'增肌以重訓為主，搭配少量有氧維持心肺。'};
+  if(S.goal === 'fat'){
+    return S.level === 'beginner'
+      ? {mods:['strength','cardio'], why:'減脂新手先用重訓加有氧打底，HIIT 等體能上來後再加。'}
+      : {mods:['strength','hiit','cardio'], why:'有基礎的話，重訓保留肌肉、HIIT 提高效率、有氧補足量。'};
+  }
+  return {mods:['cardio','strength'], why:'維持健康以有氧為底，加上重訓保持肌力與骨密度。'};
+}
+
+/* ---------- 動作資料 ---------- */
+const EX = {
+  squat:{
+    none:{n:'徒手深蹲',t:'腳與肩同寬，臀部往後坐，膝蓋朝腳尖方向，蹲到大腿接近與地面平行。'},
+    dumbbell:{n:'高腳杯深蹲',t:'雙手抱啞鈴貼胸，下蹲時胸口挺起、背保持挺直。'},
+    gym:{n:'腿推機（或槓鈴深蹲）',t:'腳掌踩實、膝蓋不要內夾；初學者先用輕重量熟悉軌跡。'}},
+  hinge:{
+    none:{n:'臀橋',t:'仰躺屈膝，臀部上推到肩、髖、膝成一直線，頂端夾緊臀部停 1 秒。'},
+    dumbbell:{n:'啞鈴羅馬尼亞硬舉',t:'膝微彎，臀部往後推，背打直，啞鈴貼著大腿下滑到小腿中段。'},
+    gym:{n:'羅馬尼亞硬舉（啞鈴或槓鈴）',t:'重點是臀部後推而不是彎腰，感覺大腿後側拉伸再起身。'}},
+  lunge:{
+    none:{n:'後跨弓箭步',t:'向後跨一步，身體垂直下沉，前膝不內夾。',side:true},
+    dumbbell:{n:'啞鈴分腿蹲',t:'前後站開，垂直下沉再站起，重心放在前腳，啞鈴垂於身側。',side:true},
+    gym:{n:'啞鈴分腿蹲（可扶架子）',t:'前後站開，垂直下沉，需要時扶著架子維持平衡。',side:true}},
+  hpush:{
+    none:{n:'伏地挺身（可改跪姿或手撐高處）',t:'身體成一直線，手肘約 45 度，不夠力就降低難度，標準比數量重要。'},
+    dumbbell:{n:'啞鈴地板臥推',t:'躺在地上或長椅，上臂輕觸地面再推起，手腕保持中立。'},
+    gym:{n:'胸推機（或槓鈴臥推）',t:'肩胛夾緊、腳踩穩；槓鈴臥推請找人保護，或先用器械。'}},
+  vpush:{
+    none:{n:'派克伏地挺身',t:'臀部抬高成倒 V 字，頭朝雙手之間下沉再推起；太吃力可把手撐在較高的椅面。'},
+    dumbbell:{n:'啞鈴肩推',t:'核心收緊、肋骨不外翻，推到手臂接近伸直，不要聳肩。'},
+    gym:{n:'肩推機',t:'調整椅背讓手把與肩同高，推起時不聳肩。'}},
+  hpull:{
+    none:{n:'背包俯身划船',t:'背包裝書或水瓶，俯身背打直，手肘往後拉、夾緊肩胛。'},
+    dumbbell:{n:'單手啞鈴划船',t:'一手一膝撐在椅子上，手肘往髖部方向拉，身體不要轉動。',side:true},
+    gym:{n:'坐姿划船機',t:'胸挺起，手肘向後拉，擠壓肩胛 1 秒再慢慢放回。'}},
+  vpull:{
+    none:{n:'俯臥超人式',t:'趴姿，手腳同時離地 1–2 秒再放下。無器材時背部刺激較弱，可考慮買一條彈力帶。'},
+    dumbbell:{n:'啞鈴俯身飛鳥',t:'俯身背打直，手肘微彎向兩側打開，用輕重量就好。'},
+    gym:{n:'滑輪下拉',t:'拉向鎖骨附近，肩膀下沉不聳肩，慢慢放回。'}},
+  core:{
+    none:{n:'棒式',t:'肩膀在手肘正上方，頭到腳成一直線，腹部收緊不塌腰。',time:true},
+    dumbbell:{n:'死蟲式',t:'仰躺，對側手腳緩慢伸展，腰部貼地不拱起。',r:'8–10',side:true},
+    gym:{n:'滑輪捲腹',t:'用腹部捲起脊椎，不是用手臂拉；速度放慢。',r:'10–15'}},
+  calf:{
+    none:{n:'單腳提踵（可扶牆）',t:'踮到最高停 1 秒，再慢慢放下。',r:'12–15',side:true},
+    dumbbell:{n:'啞鈴提踵',t:'手持啞鈴站直，踮到最高停 1 秒，慢慢放下。',r:'15–20'},
+    gym:{n:'站姿提踵機',t:'踮到最高停 1 秒，下放時小腿充分拉伸。',r:'15–20'}}
+};
+const TPL = {
+  fbA:{name:'全身訓練 A', p:['squat','hpush','hpull','core','vpush','lunge']},
+  fbB:{name:'全身訓練 B', p:['hinge','vpush','vpull','core','hpush','lunge']},
+  upper:{name:'上半身訓練', p:['hpush','hpull','vpush','vpull','core']},
+  lower:{name:'下半身訓練', p:['squat','hinge','lunge','calf','core']}
+};
+const CARDIO = {
+  beginner:{none:['快走','騎 YouBike 或單車'], dumbbell:['快走','騎 YouBike 或單車'], gym:['跑步機快走','飛輪（低阻力）','橢圓機']},
+  mid:{none:['快走或慢跑','騎 YouBike 或單車','慢跑'], dumbbell:['快走或慢跑','騎單車','慢跑'], gym:['跑步機慢跑','飛輪','橢圓機']}
+};
+const HIIT = {
+  none:{beginner:['原地快速踏步','徒手深蹲','站姿開合手腳（不跳）','慢速登山者'],
+        mid:['開合跳','高抬腿','登山者','快速深蹲','簡化波比跳（不做伏地挺身）']},
+  dumbbell:{beginner:['輕啞鈴深蹲推舉','輕啞鈴硬舉','原地快速踏步','交替啞鈴划船'],
+        mid:['啞鈴深蹲推舉','啞鈴擺盪','啞鈴交替划船','開合跳']},
+  gym:{beginner:['飛輪（中高阻力）','划船機（中速）','登階','啞鈴深蹲'],
+        mid:['划船機衝刺','飛輪衝刺','壺鈴（或啞鈴）擺盪','快速登階']}
+};
+
+/* ---------- 菜單產生（規則式） ---------- */
+const DAYSET = {2:[1,4],3:[1,3,5],4:[1,2,4,5],5:[1,2,3,5,6],6:[1,2,3,4,5,6]};
+const WEIGHTS = {
+  muscle:{strength:.65,cardio:.2,hiit:.15},
+  fat:{strength:.4,hiit:.3,cardio:.3},
+  health:{strength:.35,cardio:.45,hiit:.2}
+};
+function allocate(){
+  const d = S.days, mods = S.modules, W = WEIGHTS[S.goal];
+  const caps = {strength:4, cardio:6, hiit:S.level === 'beginner' ? 1 : 2};
+  const sum = mods.reduce((a,m) => a + W[m], 0);
+  const c = {};
+  mods.forEach(m => c[m] = 0);
+  let used = 0;
+  for(let i = 0; i < d; i++){
+    let best = null, bv = -1e9;
+    mods.forEach(m => {
+      if(c[m] >= caps[m]) return;
+      const v = W[m] / sum * (i + 1) - c[m];
+      if(v > bv){ bv = v; best = m; }
+    });
+    if(!best) break;
+    c[best]++; used++;
+  }
+  c.recovery = d - used;
+  return c;
+}
+function sequence(c){
+  const left = Object.assign({}, c), out = [];
+  const total = Object.keys(left).reduce((a,k) => a + left[k], 0);
+  let prev = null;
+  for(let i = 0; i < total; i++){
+    const train = ['strength','cardio','hiit'].filter(t => left[t] > 0);
+    let pick;
+    if(prev === 'hiit' && left.recovery > 0) pick = 'recovery';
+    else{
+      let cand = train.filter(t => t !== prev);
+      if(!cand.length) cand = train;
+      if(cand.length){ cand.sort((a,b) => left[b] - left[a]); pick = cand[0]; }
+      else pick = 'recovery';
+    }
+    out.push(pick); left[pick]--; prev = pick;
+  }
+  return out;
+}
+function pickTpl(k, n){
+  if(n === 1) return TPL.fbA;
+  if(S.level === 'beginner' || n === 2) return k % 2 === 0 ? TPL.fbA : TPL.fbB;
+  if(n === 3) return [TPL.upper, TPL.lower, TPL.fbB][k];
+  return k % 2 === 0 ? TPL.upper : TPL.lower;
+}
+const WARM = '<p class="blk"><b>熱身 5 分鐘</b>：原地踏步、手臂繞環、髖關節繞圈、徒手深蹲 10 下，讓身體熱起來。</p>';
+const COOL = '<p class="blk"><b>緩和 5 分鐘</b>：放慢呼吸，伸展剛用到的肌群，每個動作停留 20–30 秒，不要憋氣。</p>';
+
+function strengthSession(k, n){
+  const tpl = pickTpl(k, n);
+  const cnt = {20:3,30:4,45:5,60:6}[S.minutes];
+  const beginner = S.level === 'beginner';
+  const reps = {muscle:'8–12', fat:'12–15', health:'10–15'}[S.goal];
+  const rest = S.goal === 'muscle' ? '60–90 秒' : '45–60 秒';
+  const items = tpl.p.slice(0, cnt).map((p, i) => {
+    const ex = EX[p][S.equip];
+    const base = beginner ? (S.minutes >= 45 ? 3 : 2) : 3;
+    const sets = (!beginner && S.goal === 'muscle' && i < 2) ? 4 : base;
+    const amt = ex.time ? `${sets} 組 × 30–45 秒` : `${sets} 組 × ${ex.r || reps} 下${ex.side ? '（每側）' : ''}`;
+    return `<li><span class="nm">${ex.n}</span><span class="am">${amt}</span><p class="tp">${ex.t}</p></li>`;
+  }).join('');
+  const tip = beginner
+    ? '新手重點：先把動作做標準。每組結束時覺得「還能再做 2–3 下」，就是合適的難度。'
+    : '每組最後 1–2 下要有點吃力，但姿勢不能走樣。';
+  return {title: tpl.name, minutes: `約 ${S.minutes} 分鐘`,
+    html: WARM + `<ol class="ex">${items}</ol><p class="blk"><b>組間休息</b>：${rest}。${tip}</p>` + COOL};
+}
+function cardioSession(k){
+  const main = Math.max(S.minutes - 10, 10);
+  const pool = CARDIO[S.level === 'beginner' ? 'beginner' : 'mid'][S.equip];
+  const way = pool[k % pool.length];
+  const how = S.level === 'beginner'
+    ? '以「能完整說話、但有點喘」的強度進行（自覺強度約 5–6／10）。'
+    : `主體中穿插 ${main >= 25 ? 3 : 2} 次「3 分鐘稍快（約 7／10）＋2 分鐘輕鬆」，其餘維持能說話的強度。`;
+  return {title: `有氧：${way}`, minutes: `約 ${S.minutes} 分鐘`,
+    html: `<p class="blk"><b>熱身 5 分鐘</b>：用最輕鬆的速度開始，逐步加快。</p>
+<p class="blk"><b>主體 ${main} 分鐘</b>：${way}。${how}</p>
+<p class="blk"><b>緩和 5 分鐘</b>：慢慢降速到呼吸平穩，最後做 3–5 分鐘小腿與大腿伸展。</p>`};
+}
+function hiitSession(){
+  const lv = S.level === 'beginner' ? 'beginner' : 'mid';
+  const moves = HIIT[S.equip][lv];
+  const work = lv === 'beginner' ? 30 : 40, rest = lv === 'beginner' ? 30 : 20;
+  const main = Math.max(S.minutes - 10, 8);
+  const intervals = Math.floor(main * 60 / (work + rest));
+  const rounds = Math.max(1, Math.round(intervals / moves.length));
+  const list = moves.map(m => `<li><span class="nm">${m}</span><span class="am">${work} 秒</span><p class="tp">之後休息 ${rest} 秒</p></li>`).join('');
+  return {title: 'HIIT 間歇訓練', minutes: `約 ${S.minutes} 分鐘`,
+    html: WARM + `<p class="blk"><b>一圈 ${moves.length} 個動作</b>，共做 <b>${rounds} 圈</b>，圈與圈之間休息 60 秒。</p>
+<ol class="ex">${list}</ol>
+<p class="blk">用手機計時器設定「${work} 秒運動／${rest} 秒休息」。衝刺的感覺是「有點吃力但姿勢不變形」，不是拚命。若出現頭暈、胸悶或疼痛，請立刻停止。</p>` + COOL};
+}
+function recoverySession(){
+  return {title:'主動恢復日', minutes:'20–40 分鐘',
+    html:'<p class="blk"><b>輕鬆動一動</b>：散步 20–30 分鐘，再做 10 分鐘全身伸展（大腿前後側、臀部、胸、背）。不用流汗，目的是促進恢復。</p>'};
+}
+function restSession(){
+  return {title:'休息日', minutes:'',
+    html:'<p class="blk">好好睡覺、正常吃飯，讓身體在這天把訓練吸收進去。想動的話，散步或輕鬆伸展就好。</p>'};
+}
+function buildPlan(){
+  const c = allocate(), seq = sequence(c), act = DAYSET[S.days];
+  const idx = {strength:0, cardio:0, hiit:0};
+  const names = ['一','二','三','四','五','六','日'];
+  const days = [];
+  for(let d = 1; d <= 7; d++){
+    const k = act.indexOf(d);
+    if(k < 0){ days.push(Object.assign({d, label:names[d-1], type:'rest'}, restSession())); continue; }
+    const t = seq[k];
+    let s;
+    if(t === 'strength') s = strengthSession(idx.strength++, c.strength);
+    else if(t === 'cardio') s = cardioSession(idx.cardio++);
+    else if(t === 'hiit') s = hiitSession();
+    else s = recoverySession();
+    days.push(Object.assign({d, label:names[d-1], type:t}, s));
+  }
+  return {days, counts:c};
+}
+
+/* ---------- 飲食資料 ---------- */
+const DIET = {
+  muscle:{
+    title:'增肌：吃夠、吃對',
+    principles:['每餐都有一個手掌大的蛋白質（蛋、豆腐、魚、雞肉、瘦肉、無糖豆漿）。','主食別省：訓練前後吃足飯、地瓜、燕麥，才有力氣練、也才有材料修復。','整體吃得比消耗稍多一點即可，體重緩慢上升就好，不必硬塞。'],
+    plate:[['蔬菜',25,'veg'],['蛋白質',30,'pro'],['全穀澱粉',35,'carb'],['好油脂與水果',10,'fat']],
+    pro:[1.6,2.0],
+    meals:{
+      '早餐':['蛋餅＋無糖豆漿＋水果','燕麥牛奶＋水煮蛋 2 顆＋香蕉','全麥吐司夾蛋＋鮮奶'],
+      '午餐':['雞腿便當（去皮、飯吃滿）＋燙青菜＋滷蛋','烤鮭魚＋糙米飯＋兩份蔬菜','牛肉麵（湯少喝）＋加點燙青菜與豆干'],
+      '晚餐':['雞胸肉＋地瓜＋大份蔬菜','豆腐蛋炒青菜＋一碗飯＋蒸魚','水餃 10 顆＋燙青菜＋無糖豆漿'],
+      '點心／運動後':['茶葉蛋＋地瓜','優格＋水果＋一小把堅果','飯糰＋無糖豆漿']}
+  },
+  fat:{
+    title:'減脂：吃飽但吃得聰明',
+    principles:['只要稍微少吃一點就夠，不要極端節食，否則容易掉肌肉、也撐不久。','先從「去炸物、少含糖飲料、蔬菜加量」下手，比計算每一口更容易持續。','蛋白質和蔬菜吃夠，能讓你比較不餓，也幫助保留肌肉。'],
+    plate:[['蔬菜',40,'veg'],['蛋白質',30,'pro'],['全穀澱粉',25,'carb'],['油脂',5,'fat']],
+    pro:[1.4,1.8],
+    meals:{
+      '早餐':['無糖豆漿＋茶葉蛋＋地瓜','全麥吐司夾蛋與生菜（少醬）','無糖優格＋水果＋一小把堅果'],
+      '午餐':['自助餐：1 份肉或魚（不炸）＋3 份蔬菜＋半碗飯','便當飯減半、去炸物、多加青菜','雞胸或鮭魚沙拉＋一個小地瓜'],
+      '晚餐':['清蒸魚＋燙青菜＋半碗糙米','豆腐蔬菜鍋（少沾重口味醬）＋半碗飯','涼拌雞絲＋燙青菜＋小玉米'],
+      '點心／運動後':['無糖優格','水煮蛋','一份水果']}
+  },
+  health:{
+    title:'維持健康：均衡就是重點',
+    principles:['餐盤比例大致維持：蔬菜多一點、蛋白質固定、澱粉選全穀。','規律三餐，不要一餐吃太少、另一餐補回來。','少喝含糖飲料，水和無糖茶當主角。'],
+    plate:[['蔬菜',35,'veg'],['蛋白質',25,'pro'],['全穀澱粉',30,'carb'],['水果與油脂',10,'fat']],
+    pro:[1.2,1.6],
+    meals:{
+      '早餐':['燕麥＋牛奶或豆漿＋水果','全麥三明治（蛋、生菜）＋無糖茶','地瓜＋茶葉蛋＋無糖豆漿'],
+      '午餐':['自助餐：肉或魚 1 份＋蔬菜 3 份＋飯 3/4 碗','雞肉糙米飯＋燙青菜','湯麵（湯少喝）＋燙青菜＋滷蛋'],
+      '晚餐':['蒸魚＋炒青菜＋糙米飯','豆腐、蛋、蔬菜的家常菜＋一碗飯','雞肉蔬菜湯＋地瓜'],
+      '點心／運動後':['水果一份','無糖優格','一把原味堅果']}
+  }
+};
+const OUT_TIPS = ['超商組合：茶葉蛋＋地瓜＋無糖豆漿＋生菜沙拉，方便又均衡。','便當先去掉炸物、勾芡和多餘的醬汁，飯量依你的目標調整。','手搖飲選無糖或微糖，頻率自己設一個上限。','湯麵、火鍋的湯不要喝完；火鍋多選蔬菜、豆腐、肉片，少沾沙茶。'];
+const TRAIN_TIPS = ['運動前 1–2 小時：吃一份好消化的碳水加少量蛋白質（例如香蕉＋豆漿）。','運動後 1–2 小時內：補充蛋白質和主食（例如茶葉蛋＋飯糰）。','運動前中後都少量多次喝水，尿液顏色淡黃就是夠。'];
+
+/* ---------- 畫面 ---------- */
+const $ = s => document.querySelector(s);
+const dots = (n, c) => `<span class="dots">${[1,2,3,4,5].map(i => `<i class="${i <= n ? 'f' : ''}"></i>`).join('')}</span>`;
+
+function chips(field, items){
+  return `<div class="chips" role="group">` + items.map(it => {
+    const [v, l, d] = it;
+    return `<button type="button" class="chip" data-field="${field}" data-value="${v}" aria-pressed="${String(S[field]) === String(v)}"><b>${l}</b>${d ? `<small>${d}</small>` : ''}</button>`;
+  }).join('') + `</div>`;
+}
+
+function step1(){
+  return `<h2>先告訴我你的狀況</h2>
+<p class="lead">五個選擇加一個選填欄位，之後隨時可以回來修改。</p>
+<div class="q"><h3>你的主要目標</h3>${chips('goal', OPT.goal)}</div>
+<div class="q"><h3>一週可以運動幾天</h3>${chips('days', OPT.days)}<p class="hint">新手建議從 3 天開始，休息日和運動日一樣重要。</p></div>
+<div class="q"><h3>每次可以花多久</h3>${chips('minutes', OPT.minutes)}</div>
+<div class="q"><h3>你有哪些器材</h3>${chips('equip', OPT.equip)}</div>
+<div class="q"><h3>運動經驗</h3>${chips('level', OPT.level)}</div>
+<div class="q"><h3>體重（公斤，選填）</h3>
+  <input id="weight" type="number" inputmode="decimal" min="30" max="250" placeholder="例如 60" value="${S.weight}" aria-label="體重（公斤）">
+  <p class="hint">只用來估算每天的蛋白質量，資料只存在你這台裝置的瀏覽器裡。</p></div>
+<div class="actions"><button class="btn primary" data-go="2">下一步：選擇訓練方式</button></div>`;
+}
+
+function step2(){
+  const rec = recommend();
+  const cards = Object.keys(MODS).map(k => {
+    const m = MODS[k], on = S.modules.includes(k);
+    const stats = Object.keys(m.stats).map(s => `<div class="stat"><span>${STAT_LABEL[s]}</span>${dots(m.stats[s])}</div>`).join('');
+    return `<article class="mod t-${k} ${on ? 'on' : ''}" data-mod="${k}">
+  <div class="head">${rec.mods.includes(k) ? '<span class="badge">推薦</span>' : ''}<div class="en">${m.en}</div><div class="zh">${m.name}</div></div>
+  <div class="bd">
+    <p class="tg">${m.tag}</p>
+    ${stats}
+    <div class="meta"><span>${m.time}</span><span>${m.freq}</span></div>
+    <h4>適合誰</h4><p style="margin:0;font-size:14px">${m.fit}</p>
+    <h4>優點</h4><ul>${m.pros.map(x => `<li>${x}</li>`).join('')}</ul>
+    <h4>要注意</h4><ul>${m.cons.map(x => `<li>${x}</li>`).join('')}</ul>
+  </div>
+  <div class="ft"><button class="btn" type="button" data-toggle="${k}" aria-pressed="${on}">${on ? '已加入菜單（點擊取消）' : '加入菜單'}</button></div>
+</article>`;
+  }).join('');
+  return `<h2>選擇你想用的訓練方式</h2>
+<p class="lead">${GOALS[S.goal]}、${LEVELS[S.level]}的建議：${rec.why}可以自由增減，至少選一種。</p>
+<div class="mods">${cards}</div>
+<div class="actions">
+  <button class="btn" data-go="1">回上一步</button>
+  <button class="btn primary" data-go="3" ${S.modules.length ? '' : 'disabled'}>產生我的菜單</button>
+</div>
+${S.modules.length ? '' : '<p class="hint">請至少選擇一種訓練方式。</p>'}`;
+}
+
+function dietHTML(){
+  const D = DIET[S.goal];
+  const w = parseFloat(S.weight);
+  const [lo, hi] = D.pro;
+  const proText = (w >= 30 && w <= 250)
+    ? `<div class="big">${Math.round(w*lo)}–${Math.round(w*hi)} 公克／天</div><p class="hint" style="margin-top:2px">以體重 ${w} 公斤、每公斤 ${lo}–${hi} 公克估算，分散在三餐與點心。</p>`
+    : `<div class="big">每公斤 ${lo}–${hi} 公克／天</div><p class="hint" style="margin-top:2px">在第 1 步填入體重，這裡會幫你換算成公克。</p>`;
+  const plate = D.plate.map(p => `<span class="p-${p[2]}" style="flex:${p[1]}">${p[1]}%</span>`).join('');
+  const legend = D.plate.map(p => `<span><i class="p-${p[2]}"></i>${p[0]}</span>`).join('');
+  const meals = Object.keys(D.meals).map(k => `<div class="meal"><h4>${k}</h4><ul>${D.meals[k].map(x => `<li>${x}</li>`).join('')}</ul></div>`).join('');
+  return `<h3 style="font-size:22px">${D.title}</h3>
+<ul class="note" style="list-style:none;padding:12px 16px">${D.principles.map(x => `<li style="margin:2px 0">${x}</li>`).join('')}</ul>
+<div class="two">
+  <div class="box"><h3>一餐的餐盤比例</h3><div class="plate" role="img" aria-label="餐盤比例">${plate}</div><div class="plate-l">${legend}</div></div>
+  <div class="box"><h3>每天蛋白質目標</h3>${proText}</div>
+</div>
+<h3>一天怎麼吃（每餐任選一種）</h3>
+<div class="meals">${meals}</div>
+<div class="two">
+  <div class="box"><h3>外食與超商</h3><ul>${OUT_TIPS.map(x => `<li>${x}</li>`).join('')}</ul></div>
+  <div class="box"><h3>運動前後與喝水</h3><ul>${TRAIN_TIPS.map(x => `<li>${x}</li>`).join('')}</ul></div>
+</div>`;
+}
+
+function planHTML(){
+  const {days, counts} = buildPlan();
+  const strip = days.map(x => `<a class="cell t-${x.type}" href="#day${x.d}" data-cell="${x.d}"><span class="dn">${x.label}</span><span class="tn">${TYPE_SHORT[x.type]}</span></a>`).join('');
+  const parts = ['strength','cardio','hiit'].filter(t => counts[t]).map(t => `${TYPE_NAME[t]} ${counts[t]} 次`);
+  if(counts.recovery) parts.push(`主動恢復 ${counts.recovery} 天`);
+  let firstOpen = true;
+  const list = days.map(x => {
+    const open = firstOpen && ['strength','cardio','hiit'].includes(x.type);
+    if(open) firstOpen = false;
+    return `<details class="day t-${x.type}" id="day${x.d}" ${open ? 'open' : ''}>
+  <summary><span class="d">週${x.label}</span><span class="tag">${TYPE_NAME[x.type]}</span><b>${x.title}</b><span class="m">${x.minutes}</span></summary>
+  <div class="body">${x.html}</div></details>`;
+  }).join('');
+  return `<div class="strip">${strip}</div>
+<p class="legend">本週安排：${parts.join('、')}。點上方的日期可以直接跳到那一天。</p>
+<div class="toolbar"><h3>每日內容</h3><span><button class="linkbtn" data-act="open">全部展開</button><button class="linkbtn" data-act="close">全部收合</button></span></div>
+${list}
+<div class="note"><h3>接下來幾週怎麼調整</h3><ul>
+<li>前兩週先求「做完、姿勢標準」，不用追求力竭。</li>
+<li>某個動作所有組數都做到次數上限後，下次加一點重量或多做 1–2 下。</li>
+<li>肌肉痠痛可以照常活動；尖銳的疼痛要停下來。</li>
+<li>每晚睡滿 7–9 小時，恢復的品質會直接影響進步。</li>
+<li>每 4 週回到第 1 步重新設定一次條件。</li></ul></div>`;
+}
+
+function step3(){
+  const tab = S.tab;
+  const sum = [GOALS[S.goal], `每週 ${S.days} 天`, `每次 ${S.minutes} 分鐘`, EQUIPS[S.equip], LEVELS[S.level]].map(x => `<li>${x}</li>`).join('');
+  return `<h2>你的專屬一週</h2>
+<ul class="summary">${sum}</ul>
+<div class="actions" style="margin-top:14px">
+  <button class="btn" data-go="1">調整條件</button>
+  <button class="btn" data-go="2">換訓練方式</button>
+  <button class="btn" data-act="print">列印／存成 PDF</button>
+  <button class="btn" data-act="reset">清除並重新開始</button>
+</div>
+<div class="tabs" role="tablist">
+  <button role="tab" data-tab="plan" aria-selected="${tab === 'plan'}">運動菜單</button>
+  <button role="tab" data-tab="diet" aria-selected="${tab === 'diet'}">飲食建議</button>
+</div>
+<section class="panel ${tab === 'plan' ? 'show' : ''}" role="tabpanel">${planHTML()}</section>
+<section class="panel ${tab === 'diet' ? 'show' : ''}" role="tabpanel">${dietHTML()}</section>
+<p class="disc">本頁內容為一般性的運動與飲食參考，不是醫療建議。若有心血管疾病、關節或傷病問題、懷孕、慢性病、腎臟疾病，或運動時出現胸痛、頭暈等不適，請先諮詢醫師或專業教練。</p>`;
+}
+
+function render(){
+  if(S.step === 3 && !S.modules.length) S.step = 2;
+  document.querySelectorAll('.steps button').forEach(b => {
+    const n = +b.dataset.go;
+    b.setAttribute('aria-current', n === S.step ? 'step' : 'false');
+    b.disabled = (n === 3 && !S.modules.length);
+  });
+  $('#app').innerHTML = S.step === 1 ? step1() : S.step === 2 ? step2() : step3();
+}
+function rerenderKeepScroll(){
+  const y = window.scrollY;
+  render();
+  window.scrollTo(0, y);
+}
+function goTo(n){
+  if(n === 3 && !S.modules.length) return;
+  if(n === 2 && !S.touched) S.modules = recommend().mods;
+  S.step = n; save(); render();
+  const top = document.querySelector('.steps');
+  window.scrollTo({top: top ? top.offsetTop : 0});
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const chip = t.closest('.chip');
+  if(chip){
+    const f = chip.dataset.field;
+    let v = chip.dataset.value;
+    if(f === 'days' || f === 'minutes') v = +v;
+    S[f] = v;
+    if(!S.touched && (f === 'goal' || f === 'level')) S.modules = recommend().mods;
+    save(); rerenderKeepScroll(); return;
+  }
+  const nav = t.closest('[data-go]');
+  if(nav){ goTo(+nav.dataset.go); return; }
+  const mod = t.closest('.mod');
+  if(mod){
+    const k = mod.dataset.mod;
+    S.modules = S.modules.includes(k) ? S.modules.filter(x => x !== k) : S.modules.concat(k);
+    S.touched = true; save(); rerenderKeepScroll(); return;
+  }
+  const tab = t.closest('[data-tab]');
+  if(tab){ S.tab = tab.dataset.tab; save(); rerenderKeepScroll(); return; }
+  const cell = t.closest('[data-cell]');
+  if(cell){
+    e.preventDefault();
+    if(S.tab !== 'plan'){ S.tab = 'plan'; save(); render(); }
+    const el = document.getElementById('day' + cell.dataset.cell);
+    if(el){ el.open = true; el.scrollIntoView({behavior:'smooth', block:'start'}); }
+    return;
+  }
+  const act = t.closest('[data-act]');
+  if(act){
+    const a = act.dataset.act;
+    if(a === 'open' || a === 'close') document.querySelectorAll('details.day').forEach(d => d.open = (a === 'open'));
+    if(a === 'print') window.print();
+    if(a === 'reset' && window.confirm('要清除已填的資料並重新開始嗎？')){
+      try{ localStorage.removeItem(STORE); }catch(err){}
+      S = sanitize(); render(); window.scrollTo({top:0});
+    }
+  }
+});
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'weight'){ S.weight = e.target.value; save(); }
+});
+window.addEventListener('beforeprint', () => document.querySelectorAll('details.day').forEach(d => d.open = true));
+
+render();
+})();
+</script>
+</body>
+</html>
